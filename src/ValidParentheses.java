@@ -3,6 +3,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+/**
+ * @author Mohammed Al-Ani
+ */
 public class ValidParentheses {
 
     private boolean isValid = false;
