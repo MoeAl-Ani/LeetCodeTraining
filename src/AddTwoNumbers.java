@@ -5,82 +5,52 @@ import java.util.*;
  */
 public class AddTwoNumbers {
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
-        Stack<Integer> n1Stack = new Stack<>();
-        Stack<Integer> n2Stack = new Stack<>();
-        while (l1 != null) {
-            n1Stack.push(l1.val);
-            l1 = l1.next;
-        }
-        while (l2 != null) {
-            n2Stack.push(l2.val);
-            l2 = l2.next;
-        }
 
-        Deque<Integer> rs = new ArrayDeque<>();
         int carry = 0;
-        Iterator<Integer> n1Iterator = n1Stack.iterator();
-        Iterator<Integer> n2Iterator = n2Stack.iterator();
-        while (n1Iterator.hasNext() || n2Iterator.hasNext()) {
+
+        ListNode head = null;
+        ListNode tail = null;
+        while (l1 != null || l2 != null) {
             Integer n1 = null;
             Integer n2 = null;
             try {
-                n1 = n1Iterator.next();
+                n1 = l1.val;
+                l1 = l1.next;
             } catch (Exception e) {
-
             }
             try {
-                n2 = n2Iterator.next();
+                n2 = l2.val;
+                l2 = l2.next;
             } catch (Exception e) {
             }
 
+            int sum = 0;
             if (n1 != null && n2 != null) {
                 // cal n1 & n2
-                int sum = n1 + n2 + carry;
-                if (sum >= 10) {
-                    carry = sum / 10;
-                    rs.push(sum % 10);
-                } else {
-                    carry = 0;
-                    rs.push(sum);
-                }
+                sum = n1 + n2 + carry;
             } else if (n1 != null) {
                 // cal n1
-                int sum = n1 + carry;
-                if (sum >= 10) {
-                    carry = sum / 10;
-                    rs.push(sum % 10);
-                } else {
-                    carry = 0;
-                    rs.push(sum);
-                }
+                sum = n1 + carry;
             } else {
                 // cal n2
-                int sum = n2 + carry;
-                if (sum >= 10) {
-                    carry = sum / 10;
-                    rs.push(sum % 10);
-                } else {
-                    carry = 0;
-                    rs.push(sum);
-                }
+                sum = n2 + carry;
             }
-
+            if (sum >= 10) {
+                carry = 1;
+                sum = sum % 10;
+            } else {
+                carry = 0;
+            }
+            if (head == null) {
+                head = new ListNode(sum);
+                tail = head;
+            } else {
+                tail.next = new ListNode(sum);
+                tail = tail.next;
+            }
         }
         if (carry > 0) {
-            rs.push(carry);
-        }
-
-        ListNode head = null;
-
-        while (!rs.isEmpty()) {
-            if (head == null) {
-                head = new ListNode();
-                head.val = rs.poll();
-            } else {
-                ListNode temp = head;
-                head = new ListNode(rs.poll());
-                head.next = temp;
-            }
+            tail.next = new ListNode(carry);
         }
         return head;
     }
@@ -96,8 +66,8 @@ public class AddTwoNumbers {
       }
 
     public static void main(String[] args) {
-        int[] num1Arr = {1,8};
-        int[] num2Arr = {0};
+        int[] num1Arr = {2,4, 3};
+        int[] num2Arr = {5,6,4};
         ListNode h1 = null;
         for (int i = num1Arr.length -1; i >= 0; i--) {
             if (h1 == null) {
