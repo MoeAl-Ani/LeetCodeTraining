@@ -1,84 +1,116 @@
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class MergeIntervals {
 
     public int[][] merge(int[][] intervals) {
         if (intervals.length == 1)
             return intervals;
-        List<List<Integer>> ans = new ArrayList<>();
-        List<List<Integer>> intervalsArray = new ArrayList<>();
-        for (int i = 0; i < intervals.length; i++) {
-            List<Integer> interval = new ArrayList<>();
-            interval.add(intervals[i][0]);
-            interval.add(intervals[i][1]);
-            intervalsArray.add(interval);
+
+        List<int[]> sortedArrayEntries = Arrays.stream(intervals)
+                .sorted(Comparator.comparingInt(arrayEntryOne -> arrayEntryOne[0]))
+                .collect(Collectors.toList());
+
+        MyTree tree = new MyTree();
+
+        for (int[] col : sortedArrayEntries) {
+            int st = col[0];
+            int et = col[1];
+            IntervalPoint intervalPoint = new IntervalPoint(st, et);
+            tree.addItem(intervalPoint);
         }
 
-        PriorityQueue<Integer> minPq = new PriorityQueue<>(Integer::compareTo);
-        PriorityQueue<Integer> maxPq = new PriorityQueue<>((integer, t1) -> integer.compareTo(t1) * -1);
-
-        Set<List<Integer>> anss = new HashSet<>();
-        mergeOverlapIntervals(intervalsArray,anss, minPq, maxPq);
-        int[][] result = new int[anss.size()][2];
-        int index = 0;
-        for (List<Integer> subs : anss) {
-            result[index][0] = subs.get(0);
-            result[index][1] = subs.get(1);
-            index++;
-        }
-        return result;
+        return tree.convertToArray();
     }
 
-    private void mergeOverlapIntervals(List<List<Integer>> intervals,Set<List<Integer>> ans,  PriorityQueue<Integer> minPq, PriorityQueue<Integer> maxPq) {
+    static class MyTree {
+        Node root;
 
-        int index = 0;
-        for (List<Integer> interval : intervals) {
-            minPq.add(interval.get(0));
-            minPq.add(interval.get(1));
-            maxPq.add(interval.get(0));
-            maxPq.add(interval.get(1));
-            index++;
-            if (maxPq.size() == 4) {
-                Integer min = minPq.peek();
-                Integer max = maxPq.peek();
-
-                maxPq.poll();
-                int sum = 0;
-                Set<Integer> intervalsSet = new HashSet<>();
-                while (!maxPq.isEmpty()) {
-                    intervalsSet.add(maxPq.poll());
-                }
-                for (Integer v : intervalsSet) {
-                    sum = sum + v;
-                }
-                if (max - sum == 0) {
-                    List<Integer> mergedInterval = new ArrayList<>();
-                    mergedInterval.add(min);
-                    mergedInterval.add(max);
-                    List<List<Integer>> copy = new ArrayList<>(intervals);
-                    copy.remove(0);
-                    copy.remove(0);
-                    copy.add(mergedInterval);
-                    minPq.clear();
-                    maxPq.clear();
-                    for (List<Integer> integers : copy) {
-                        ans.add(integers);
-                    }
-                    mergeOverlapIntervals(copy, ans, minPq, maxPq);
-                }
-            }
+        public MyTree() {
         }
 
+        public void addItem(IntervalPoint point) {
+            root = addNode(point, root);
+        }
+        private Node addNode(IntervalPoint point, Node node) {
+            if (node == null) return new Node(point, null, null);
+            if (node.point.compareTo(point) < 0) {
+                // left then merge
+                node.point = node.point.maxCombine(point);
+                //node.left = addNode(point, node.left);
+            } else node.right = addNode(point, node.right);
+            return node;
+        }
+
+        public int[][] convertToArray() {
+            List<int[]> ans = new ArrayList<>();
+            traverse(ans, root);
+            int[][] finalAns = new int[ans.size()][2];
+            int index = 0;
+            for (int[] an : ans) {
+                finalAns[index++] = an;
+            }
+            return finalAns;
+        }
+
+        private void traverse(List<int[]> ans, Node node) {
+            Node temp = node;
+            while (temp != null) {
+                ans.add(new int[] {temp.point.startTime, temp.point.endTime});
+                temp = temp.right;
+            }
+        }
+    }
+
+    static class Node {
+        IntervalPoint point;
+        Node left;
+        Node right;
+
+        public Node(IntervalPoint point, Node left, Node right) {
+            this.left = left;
+            this.right = right;
+            this.point = point;
+        }
+    }
+
+    static class IntervalPoint implements Comparable<IntervalPoint> {
+        int startTime;
+        int endTime;
+
+
+        public IntervalPoint(int startTime, int endTime) {
+            this.startTime = startTime;
+            this.endTime = endTime;
+        }
+
+        public IntervalPoint maxCombine(IntervalPoint point) {
+            int max = Math.max(this.endTime, point.endTime);
+            int min = Math.min(this.startTime, point.startTime);
+            return new IntervalPoint(min, max);
+        }
+
+        @Override
+        public int compareTo(IntervalPoint first) {
+            if ((first.endTime >= this.startTime) && (first.startTime <= this.endTime)) return -1;
+            return 1;
+        }
+
+        @Override
+        public String toString() {
+            return "IntervalPoint{" +
+                    "startTime=" + startTime +
+                    ", endTime=" + endTime +
+                    '}';
+        }
     }
 
     public static void main(String[] args) {
         int[][] intervals = {{1,3},{2,6},{8,10},{15,18}};
         int[][] intervals2 = {{1,4},{4,5}};
         int[][] intervals3 = {{1,4},{1,4}};
-        //System.out.println(Arrays.deepToString(new MergeIntervals().merge(intervals)));
-        //System.out.println(Arrays.deepToString(new MergeIntervals().merge(intervals2)));
+        System.out.println(Arrays.deepToString(new MergeIntervals().merge(intervals)));
+        System.out.println(Arrays.deepToString(new MergeIntervals().merge(intervals2)));
         System.out.println(Arrays.deepToString(new MergeIntervals().merge(intervals3)));
     }
 }
