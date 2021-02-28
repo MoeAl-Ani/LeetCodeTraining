@@ -3,47 +3,75 @@ import java.util.*;
 public class WordLadder {
 
     public static class Graph {
-        final private List<LinkedList<Edge>> adj;
-        Map<Integer, Edge> edgeMap = new HashMap<>();
-
+        final private List<List<Integer>> adj;
+        final private int v;
         public Graph(int vertices) {
+            this.v = vertices;
             adj = new ArrayList<>(vertices);
             for (int i = 0; i < vertices; i++) {
-                adj.add(i, new LinkedList<>());
+                adj.add(i, new ArrayList<>());
             }
         }
 
-        public void addEdge(Edge e) {
-            adj.get(e.from).add(e);
-            edgeMap.put(e.from, e);
+        public void addEdge(int i, int j) {
+            adj.get(i).add(j);
+            adj.get(j).add(i);
         }
 
-        public Iterable<Edge> adj(int v) {
+        public List<Integer> adj(int v) {
             return adj.get(v);
         }
     }
 
-    public static class Edge {
-        Integer from;
-        Integer to;
-        boolean visited;
+    public static class ShortestPath {
+        int dist[];
+        int pred[];
+        boolean visited[];
+        public ShortestPath(Graph g, int src, int target) {
+            dist = new int[g.v];
+            pred = new int[g.v];
+            Arrays.fill(pred, -1);
+            visited = new boolean[g.v];
+            
+            dist[src] = 0;
+            visited[src] = true;
 
-        public Edge(Integer from, Integer to) {
-            this.from = from;
-            this.to = to;
+            Queue<Integer> queue = new ArrayDeque<>();
+            queue.add(src);
+            
+            while (!queue.isEmpty()) {
+                int u = queue.remove();
+                for (int i = 0; i < g.adj.get(u).size(); i++) {
+                    if (!visited[g.adj.get(u).get(i)]) {
+                        visited[g.adj.get(u).get(i)] = true;
+                        dist[g.adj.get(u).get(i)] = dist[u] + 1;
+                        pred[g.adj.get(u).get(i)] = u;
+                        queue.add(g.adj.get(u).get(i));
+                    }
+
+                    if (g.adj.get(u).get(i) == target)
+                        return;
+                }
+            }
+        }
+        public int countPathTo(int dest) {
+            return dist[dest] > 0 ?  dist[dest] +1 : 0;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Edge edge = (Edge) o;
-            return from.equals(edge.from) && to.equals(edge.to);
-        }
+        public void printPathTo(int dest) {
+            LinkedList<Integer> path = new LinkedList<>();
+            int crawl = dest;
+            path.add(crawl);
+            while (pred[crawl] != -1) {
+                path.add(pred[crawl]);
+                crawl = pred[crawl];
+            }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(from, to);
+            System.out.print("Path is :: ");
+            for (int i = path.size() - 1; i >= 0; i--) {
+                System.out.print(path.get(i) + " ");
+            }
+            System.out.println();
         }
     }
 
@@ -71,49 +99,23 @@ public class WordLadder {
         wordList.add(0, beginWord);
         wordList.add(endWord);
 
-        Set<Edge> edgeSet = new HashSet<>();
         Graph g = new Graph(wordList.size());
-        int wSize = wordList.size() -1;
+        int target = wordList.size() -1;
         boolean start=false;
         boolean end=false;
         for (int i = 0; i < wordList.size(); i++) {
             for (int j = 0; j < wordList.size(); j++) {
-                Edge e = new Edge(i, j);
                 if (isOneCharDiff(wordList.get(i), wordList.get(j))) {
                     if (i == 0) start = true;
-                    if (i == wSize || j == wSize) end = true;
-                    edgeSet.add(e);
-                    g.addEdge(e);
+                    if (i == target || j == target) end = true;
+                    g.addEdge(i,j);
                 }
             }
         }
         if (!(start && end)) return 0;
-        if (edgeSet.isEmpty()) return 0;
-        Queue<Integer> queue = new ArrayDeque<>();
-
-        int src = 0;
-        queue.add(src);
-        int level = 0;
-        while (!queue.isEmpty()) {
-            level++;
-            int size = queue.size();
-            for (int i = 0; i < size; i++) {
-                Integer id = queue.poll();
-                Edge edge = g.edgeMap.get(id);
-                edge.visited = true;
-                if (id.equals(wSize)) {
-                    return level;
-                }
-                Iterable<Edge> adj = g.adj(id);
-                adj.forEach(e -> {
-                    Edge toNode = g.edgeMap.get(e.to);
-                    if (!toNode.visited) {
-                        queue.add(e.to);
-                    }
-                });
-            }
-        }
-        return 0;
+        ShortestPath shortestPath = new ShortestPath(g, 0, target);
+        shortestPath.printPathTo(target);
+        return shortestPath.countPathTo(target);
     }
 
     public static void main(String[] args) {
