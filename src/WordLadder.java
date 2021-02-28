@@ -3,17 +3,20 @@ import java.util.*;
 public class WordLadder {
 
     public static class Graph {
-        final private List<List<Integer>> adj;
+        final private List<LinkedList<Integer>> adj;
         final private int v;
+        Map<String, Integer> wMap = new HashMap<>();
         public Graph(int vertices) {
             this.v = vertices;
             adj = new ArrayList<>(vertices);
             for (int i = 0; i < vertices; i++) {
-                adj.add(i, new ArrayList<>());
+                adj.add(i, new LinkedList<>());
             }
         }
 
-        public void addEdge(int i, int j) {
+        public void addEdge(int i, int j, List<String> wordList) {
+            wMap.put(wordList.get(i), i);
+            wMap.put(wordList.get(j), j);
             adj.get(i).add(j);
             adj.get(j).add(i);
         }
@@ -27,18 +30,21 @@ public class WordLadder {
         int dist[];
         int pred[];
         boolean visited[];
-        public ShortestPath(Graph g, int src, int target) {
+        final Map<String, Integer> wMap;
+        public ShortestPath(Graph g, String src, String target) {
             dist = new int[g.v];
             pred = new int[g.v];
             Arrays.fill(pred, -1);
             visited = new boolean[g.v];
-            
-            dist[src] = 0;
-            visited[src] = true;
+            wMap = g.wMap;
+            Integer srcId = wMap.get(src);
+            if (srcId == null)return;
+            dist[srcId] = 0;
+            visited[srcId] = true;
 
             Queue<Integer> queue = new ArrayDeque<>();
-            queue.add(src);
-            
+            queue.add(srcId);
+
             while (!queue.isEmpty()) {
                 int u = queue.remove();
                 for (int i = 0; i < g.adj.get(u).size(); i++) {
@@ -49,18 +55,22 @@ public class WordLadder {
                         queue.add(g.adj.get(u).get(i));
                     }
 
-                    if (g.adj.get(u).get(i) == target)
+                    if (g.adj.get(u).get(i).equals(wMap.get(target)))
                         return;
                 }
             }
         }
-        public int countPathTo(int dest) {
-            return dist[dest] > 0 ?  dist[dest] +1 : 0;
+        public int countPathTo(String dest) {
+            Integer d = wMap.get(dest);
+            if (d == null) return 0;
+            return dist[d] > 0 ? dist[d] +1 : 0;
         }
 
-        public void printPathTo(int dest) {
+        public void printPathTo(String dest) {
             LinkedList<Integer> path = new LinkedList<>();
-            int crawl = dest;
+            Integer dId = wMap.get(dest);
+            if (dId == null) return;
+            int crawl = wMap.get(dest);
             path.add(crawl);
             while (pred[crawl] != -1) {
                 path.add(pred[crawl]);
@@ -89,36 +99,27 @@ public class WordLadder {
         if (beginWord == null || beginWord.length() == 0) return 0;
         if (endWord == null || endWord.length() == 0) return 0;
         if (beginWord.equals(endWord)) return 0;
+        HashSet<String> set = new HashSet<>(wordList);
+        if (!set.contains(endWord)) return 0;
+        if (!set.contains(beginWord)) wordList.add(beginWord);
+        set.clear();
+        set = null;
 
-        HashSet<String> wordSet = new HashSet<>(wordList);
-        if (!wordSet.contains(endWord)) return 0;
-        wordList.remove(endWord);
-        wordSet.remove(beginWord);
-        wordSet.remove(endWord);
-        wordList = new ArrayList<>(wordSet);
-        wordList.add(0, beginWord);
-        wordList.add(endWord);
 
         Graph g = new Graph(wordList.size());
-        int target = wordList.size() -1;
-        boolean start=false;
-        boolean end=false;
         for (int i = 0; i < wordList.size(); i++) {
             for (int j = 0; j < wordList.size(); j++) {
-                if (isOneCharDiff(wordList.get(i), wordList.get(j))) {
-                    if (i == 0) start = true;
-                    if (i == target || j == target) end = true;
-                    g.addEdge(i,j);
+                if ((i > j || j > i) && isOneCharDiff(wordList.get(i), wordList.get(j))) {
+                    g.addEdge(i,j, wordList);
                 }
             }
         }
-        if (!(start && end)) return 0;
-        ShortestPath shortestPath = new ShortestPath(g, 0, target);
-        shortestPath.printPathTo(target);
-        return shortestPath.countPathTo(target);
+        ShortestPath shortestPath = new ShortestPath(g, beginWord, endWord);
+        return shortestPath.countPathTo(endWord);
     }
 
     public static void main(String[] args) {
+        long beg = System.currentTimeMillis();
         List<String> wordList = new ArrayList<>(Arrays.asList("hit", "hot", "dot", "dog", "lot", "log", "cog"));
         List<String> wordList2 = new ArrayList<>(Arrays.asList("a", "b", "c"));
         List<String> wordList3 = new ArrayList<>(Arrays.asList("hot", "dog", "dot"));
@@ -143,5 +144,6 @@ public class WordLadder {
         System.out.println("expected 11 : " + new WordLadder().ladderLength("sand", "acne", wordList10));
         System.out.println("expected 0 : " + new WordLadder().ladderLength("hot", "dog", wordList11));
         System.out.println("expected 0 : " + new WordLadder().ladderLength("talk", "tail", wordList12));
+        System.out.println(System.currentTimeMillis() - beg + "ms");
     }
 }
