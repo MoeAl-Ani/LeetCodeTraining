@@ -3,14 +3,14 @@ import java.util.*;
 public class WordLadder {
 
     public static class Graph {
-        final private List<LinkedList<Integer>> adj;
+        final private List<Set<Integer>> adj;
         final private int v;
         Map<String, Integer> wMap = new HashMap<>();
         public Graph(int vertices) {
             this.v = vertices;
             adj = new ArrayList<>(vertices);
             for (int i = 0; i < vertices; i++) {
-                adj.add(i, new LinkedList<>());
+                adj.add(i, new HashSet<>());
             }
         }
 
@@ -21,7 +21,7 @@ public class WordLadder {
             adj.get(j).add(i);
         }
 
-        public List<Integer> adj(int v) {
+        public Set<Integer> adj(int v) {
             return adj.get(v);
         }
     }
@@ -31,7 +31,7 @@ public class WordLadder {
         int pred[];
         boolean visited[];
         final Map<String, Integer> wMap;
-        public ShortestPath(Graph g, String src, String target) {
+        public ShortestPath(Graph g, String src) {
             dist = new int[g.v];
             pred = new int[g.v];
             Arrays.fill(pred, -1);
@@ -47,16 +47,13 @@ public class WordLadder {
 
             while (!queue.isEmpty()) {
                 int u = queue.remove();
-                for (int i = 0; i < g.adj.get(u).size(); i++) {
-                    if (!visited[g.adj.get(u).get(i)]) {
-                        visited[g.adj.get(u).get(i)] = true;
-                        dist[g.adj.get(u).get(i)] = dist[u] + 1;
-                        pred[g.adj.get(u).get(i)] = u;
-                        queue.add(g.adj.get(u).get(i));
+                for (Integer w : g.adj.get(u)) {
+                    if (!visited[w]) {
+                        visited[w] = true;
+                        dist[w] = dist[u] + 1;
+                        pred[w] = u;
+                        queue.offer(w);
                     }
-
-                    if (g.adj.get(u).get(i).equals(wMap.get(target)))
-                        return;
                 }
             }
         }
@@ -103,7 +100,6 @@ public class WordLadder {
         if (!set.contains(endWord)) return 0;
         if (!set.contains(beginWord)) wordList.add(beginWord);
         set.clear();
-        set = null;
 
 
         Graph g = new Graph(wordList.size());
@@ -114,7 +110,7 @@ public class WordLadder {
                 }
             }
         }
-        ShortestPath shortestPath = new ShortestPath(g, beginWord, endWord);
+        ShortestPath shortestPath = new ShortestPath(g, beginWord);
         return shortestPath.countPathTo(endWord);
     }
 
