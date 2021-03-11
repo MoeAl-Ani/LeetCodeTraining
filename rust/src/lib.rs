@@ -3,6 +3,7 @@ mod two_sum;
 mod longest_substring_without_repeating;
 mod atoi;
 mod container_with_most_water;
+mod integer_to_roman;
 
 #[cfg(test)]
 mod tests {
