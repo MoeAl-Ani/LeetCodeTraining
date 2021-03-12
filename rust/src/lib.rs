@@ -4,6 +4,7 @@ mod longest_substring_without_repeating;
 mod atoi;
 mod container_with_most_water;
 mod integer_to_roman;
+mod roman_to_integer;
 
 #[cfg(test)]
 mod tests {
