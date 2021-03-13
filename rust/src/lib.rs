@@ -7,6 +7,7 @@ mod integer_to_roman;
 mod roman_to_integer;
 mod three_sum;
 mod three_sum_closest;
+mod str_str;
 
 #[cfg(test)]
 mod tests {
