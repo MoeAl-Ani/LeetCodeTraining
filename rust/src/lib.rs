@@ -8,6 +8,7 @@ mod roman_to_integer;
 mod three_sum;
 mod three_sum_closest;
 mod str_str;
+mod word_ladder;
 
 #[cfg(test)]
 mod tests {
