@@ -9,6 +9,7 @@ mod three_sum;
 mod three_sum_closest;
 mod str_str;
 mod word_ladder;
+mod rotate_image;
 
 #[cfg(test)]
 mod tests {
