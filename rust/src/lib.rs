@@ -11,6 +11,7 @@ mod str_str;
 mod word_ladder;
 mod rotate_image;
 mod Anagram;
+mod minimum_window_substring;
 
 #[cfg(test)]
 mod tests {
